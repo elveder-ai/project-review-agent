@@ -1,0 +1,28 @@
+{
+  "name": "project-review-agent",
+  "version": "1.0.0",
+  "description": "AI agent for code review and analysis of projects",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "npm run build && node dist/index.js",
+    "test": "npm run build && npm run start ./test-project",
+    "clean": "./scripts/clean.sh"
+  },
+  "dependencies": {
+    "@langchain/anthropic": "^0.3.15",
+    "@langchain/community": "^0.3.36",
+    "@langchain/core": "^0.3.42",
+    "dotenv": "^16.3.1",
+    "langchain": "^0.3.19",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.10",
+    "@types/node": "^20.10.4",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.1",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.3.3"
+  }
+}

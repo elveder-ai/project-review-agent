@@ -1,0 +1,16 @@
+.DS_Store
+deploy.sh
+
+# Caches and outputs
+cache/
+output/
+
+# Environment variables
+.env
+
+# Node modules
+node_modules
+
+# TypeScript builds
+dist/
+*.js.map
