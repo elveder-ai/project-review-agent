@@ -113,6 +113,28 @@ export async function getProjectStructure(rootDir: string): Promise<ProjectStruc
       throw new Error('Unexpected JSON structure from code2prompt');
     }
     
+    console.log(`Total files before filtering: ${code2promptOutput.files.length}`);
+    
+    // Common build directories and files to exclude
+    const buildPatterns = [
+      'node_modules',
+      'dist',
+      'build',
+      '.git',
+      '.cache',
+      'coverage',
+      'out',
+      'target',
+      'bin',
+      'obj',
+      '__pycache__',
+      '.next',
+      '.nuxt',
+      '.output',
+      'vendor',
+      'bower_components'
+    ];
+    
     // Build a file tree from the flat files array
     const root: FileInfo = {
       path: '',
@@ -125,11 +147,34 @@ export async function getProjectStructure(rootDir: string): Promise<ProjectStruc
       '': root
     };
     
+    // Store filtered paths for debugging
+    const filteredPaths: string[] = [];
+    const includedPaths: string[] = [];
+    
     // Process each file path and build the tree structure
     for (const filePath of code2promptOutput.files) {
       // Convert absolute path to relative path
       const relativePath = path.relative(rootDir, filePath);
       if (!relativePath) continue;
+      
+      // Check if this path should be excluded
+      let shouldExclude = false;
+      
+      // Check if any segment of the path matches a build pattern
+      const pathSegments = relativePath.split(path.sep);
+      for (const segment of pathSegments) {
+        if (buildPatterns.includes(segment)) {
+          shouldExclude = true;
+          break;
+        }
+      }
+      
+      if (shouldExclude) {
+        filteredPaths.push(relativePath);
+        continue;
+      }
+      
+      includedPaths.push(relativePath);
       
       // Split the path into segments
       const segments = relativePath.split(path.sep);
@@ -170,6 +215,14 @@ export async function getProjectStructure(rootDir: string): Promise<ProjectStruc
         dirMap[parentPath].children = dirMap[parentPath].children || [];
         dirMap[parentPath].children.push(fileInfo);
       }
+    }
+    
+    console.log(`Files excluded: ${filteredPaths.length}`);
+    console.log(`Files included: ${includedPaths.length}`);
+    
+    if (includedPaths.length === 0) {
+      console.warn('No files were included in the project structure! Check filtering logic.');
+      console.log('First 10 filtered paths:', filteredPaths.slice(0, 10));
     }
     
     return { root };
