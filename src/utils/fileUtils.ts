@@ -132,7 +132,9 @@ export async function getProjectStructure(rootDir: string): Promise<ProjectStruc
       '.nuxt',
       '.output',
       'vendor',
-      'bower_components'
+      'bower_components',
+      'release',
+      'releases'
     ];
     
     // Build a file tree from the flat files array
@@ -163,7 +165,7 @@ export async function getProjectStructure(rootDir: string): Promise<ProjectStruc
       // Check if any segment of the path matches a build pattern
       const pathSegments = relativePath.split(path.sep);
       for (const segment of pathSegments) {
-        if (buildPatterns.includes(segment)) {
+        if (buildPatterns.some(pattern => pattern.toLowerCase() === segment.toLowerCase())) {
           shouldExclude = true;
           break;
         }
