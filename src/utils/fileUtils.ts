@@ -104,9 +104,34 @@ export function getFileSize(filePath: string): number {
 
 export async function getProjectStructure(rootDir: string): Promise<ProjectStructure> {
   try {
+    // Common build directories and files to exclude
+    const buildPatterns = [
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/build/**',
+      '**/.git/**',
+      '**/.cache/**',
+      '**/coverage/**',
+      '**/out/**',
+      '**/target/**',
+      '**/bin/**',
+      '**/obj/**',
+      '**/__pycache__/**',
+      '**/.next/**',
+      '**/.nuxt/**',
+      '**/.output/**',
+      '**/vendor/**',
+      '**/bower_components/**',
+      '**/release/**',
+      '**/releases/**'
+    ];
+    
+    // Join the build patterns with the correct format for code2prompt
+    const excludePatternsString = buildPatterns.join(',');
+    
     // Use code2prompt to get JSON output
     const outputFile = getCode2promptCachePath('get_project_structure.json');
-    const code2promptOutput = await executeCode2promptJson(rootDir, outputFile);
+    const code2promptOutput = await executeCode2promptJson(rootDir, outputFile, excludePatternsString);
     
     // The output format has a 'files' array with absolute paths
     if (!code2promptOutput.files || !Array.isArray(code2promptOutput.files)) {
@@ -114,28 +139,6 @@ export async function getProjectStructure(rootDir: string): Promise<ProjectStruc
     }
     
     console.log(`Total files before filtering: ${code2promptOutput.files.length}`);
-    
-    // Common build directories and files to exclude
-    const buildPatterns = [
-      'node_modules',
-      'dist',
-      'build',
-      '.git',
-      '.cache',
-      'coverage',
-      'out',
-      'target',
-      'bin',
-      'obj',
-      '__pycache__',
-      '.next',
-      '.nuxt',
-      '.output',
-      'vendor',
-      'bower_components',
-      'release',
-      'releases'
-    ];
     
     // Build a file tree from the flat files array
     const root: FileInfo = {
@@ -150,7 +153,6 @@ export async function getProjectStructure(rootDir: string): Promise<ProjectStruc
     };
     
     // Store filtered paths for debugging
-    const filteredPaths: string[] = [];
     const includedPaths: string[] = [];
     
     // Process each file path and build the tree structure
@@ -158,23 +160,6 @@ export async function getProjectStructure(rootDir: string): Promise<ProjectStruc
       // Convert absolute path to relative path
       const relativePath = path.relative(rootDir, filePath);
       if (!relativePath) continue;
-      
-      // Check if this path should be excluded
-      let shouldExclude = false;
-      
-      // Check if any segment of the path matches a build pattern
-      const pathSegments = relativePath.split(path.sep);
-      for (const segment of pathSegments) {
-        if (buildPatterns.some(pattern => pattern.toLowerCase() === segment.toLowerCase())) {
-          shouldExclude = true;
-          break;
-        }
-      }
-      
-      if (shouldExclude) {
-        filteredPaths.push(relativePath);
-        continue;
-      }
       
       includedPaths.push(relativePath);
       
@@ -219,12 +204,10 @@ export async function getProjectStructure(rootDir: string): Promise<ProjectStruc
       }
     }
     
-    console.log(`Files excluded: ${filteredPaths.length}`);
     console.log(`Files included: ${includedPaths.length}`);
     
     if (includedPaths.length === 0) {
       console.warn('No files were included in the project structure! Check filtering logic.');
-      console.log('First 10 filtered paths:', filteredPaths.slice(0, 10));
     }
     
     return { root };
