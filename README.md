@@ -75,10 +75,9 @@ docker run \
 ## 💻 Alternative: Local Installation
 
 ### Prerequisites for Local Installation
-- [Node.js](https://nodejs.org/) (v22.0.0)
+- [Node.js](https://nodejs.org/) (v22)
 - [Code2Prompt](https://github.com/mufeedvh/code2prompt)
 - [cloc](https://github.com/AlDanial/cloc) (Count Lines of Code)
-- [Git](https://git-scm.com/) (for cloning the semgrep-rules repository)
 
 If you prefer to run the tool without Docker:
 
