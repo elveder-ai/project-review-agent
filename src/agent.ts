@@ -273,7 +273,8 @@ class ProjectReviewAgent {
     const finalReport = await generateFinalReport(
       this.projectInfo,
       this.reviewResults,
-      this.projectSize
+      this.projectSize,
+      this.projectStructure!
     );
     
     const reportPath = await saveFinalReport(finalReport);

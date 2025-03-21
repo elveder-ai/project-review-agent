@@ -302,8 +302,12 @@ export async function suggestRelatedFiles(
 export async function generateFinalReport(
   projectInfo: ProjectInfo,
   reviewResults: CodeReviewResult[],
-  projectSize: { total: number; byLanguage: Record<string, number>; category: 'SMALL' | 'MEDIUM' | 'LARGE' }
+  projectSize: { total: number; byLanguage: Record<string, number>; category: 'SMALL' | 'MEDIUM' | 'LARGE' },
+  projectStructure: ProjectStructure
 ): Promise<any> {
+  // Generate the formatted structure here so it's available in all code paths
+  const formattedStructure = formatStructureAsTree(projectStructure.root);
+  
   try {
     // Create a structured output model
     const structuredLlm = llm.withStructuredOutput(finalReportSummarySchema, {
@@ -341,7 +345,7 @@ export async function generateFinalReport(
           projectPurpose: summarizedParts.projectPurpose, // From LLM
           mainFunctionalities: summarizedParts.mainFunctionalities, // From LLM
           technologies: projectInfo.technologies, // From cache
-          structureOverview: "Project structure derived from analysis" // Placeholder for structure overview from cache
+          structureOverview: formattedStructure // Use the formatted structure here
         },
         issues: summarizedParts.issues, // From LLM
         strengths: summarizedParts.strengths, // From LLM
@@ -366,7 +370,7 @@ export async function generateFinalReport(
             projectPurpose: parsedOutput.projectPurpose || projectInfo.description,
             mainFunctionalities: parsedOutput.mainFunctionalities || ['Unable to identify main functionalities due to an error'],
             technologies: projectInfo.technologies,
-            structureOverview: "Project structure derived from analysis"
+            structureOverview: formattedStructure // Use the formatted structure here
           },
           issues: parsedOutput.issues || [],
           strengths: parsedOutput.strengths || [],
@@ -392,7 +396,7 @@ export async function generateFinalReport(
           projectPurpose: projectInfo.description,
           mainFunctionalities: ['Unable to identify main functionalities due to an error'],
           technologies: projectInfo.technologies,
-          structureOverview: "Project structure derived from analysis"
+          structureOverview: formattedStructure // Use the formatted structure here
         },
         issues: [],
         strengths: [],
@@ -418,7 +422,7 @@ export async function generateFinalReport(
         projectPurpose: projectInfo.description,
         mainFunctionalities: ['Unable to identify main functionalities due to an error'],
         technologies: projectInfo.technologies,
-        structureOverview: "Project structure derived from analysis"
+        structureOverview: formattedStructure // Use the formatted structure here even in case of error
       },
       issues: [],
       strengths: [],
