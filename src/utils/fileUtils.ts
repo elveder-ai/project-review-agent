@@ -138,8 +138,6 @@ export async function getProjectStructure(rootDir: string): Promise<ProjectStruc
       throw new Error('Unexpected JSON structure from code2prompt');
     }
     
-    console.log(`Total files before filtering: ${code2promptOutput.files.length}`);
-    
     // Build a file tree from the flat files array
     const root: FileInfo = {
       path: '',
