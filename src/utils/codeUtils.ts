@@ -158,7 +158,8 @@ export async function executeCode2promptJson(
     console.log(`Executing command: ${cmd}`);
     
     const jsonOutput = execSync(cmd, { 
-      encoding: 'utf-8'
+      encoding: 'utf-8',
+      maxBuffer: 100 * 1024 * 1024 // Increase to 100MB buffer (default is 1MB)
     });
     
     // Save the output to the file
