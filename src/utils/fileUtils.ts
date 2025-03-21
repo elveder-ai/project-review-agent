@@ -7,6 +7,28 @@ import { executeCode2promptJson } from './codeUtils';
 // Base path for cache directory
 export const CACHE_ROOT = './cache';
 
+// Common build directories and files to exclude
+export const BUILD_PATTERNS = [
+  'node_modules',
+  'dist',
+  'build',
+  '.git',
+  '.cache',
+  'coverage',
+  'out',
+  'target',
+  'bin',
+  'obj',
+  '__pycache__',
+  '.next',
+  '.nuxt',
+  '.output',
+  'vendor',
+  'bower_components',
+  'release',
+  'releases'
+];
+
 // Generate a timestamp string for folder naming
 function getTimestampString(): string {
   const now = new Date();
@@ -104,30 +126,11 @@ export function getFileSize(filePath: string): number {
 
 export async function getProjectStructure(rootDir: string): Promise<ProjectStructure> {
   try {
-    // Common build directories and files to exclude
-    const buildPatterns = [
-      '**/node_modules/**',
-      '**/dist/**',
-      '**/build/**',
-      '**/.git/**',
-      '**/.cache/**',
-      '**/coverage/**',
-      '**/out/**',
-      '**/target/**',
-      '**/bin/**',
-      '**/obj/**',
-      '**/__pycache__/**',
-      '**/.next/**',
-      '**/.nuxt/**',
-      '**/.output/**',
-      '**/vendor/**',
-      '**/bower_components/**',
-      '**/release/**',
-      '**/releases/**'
-    ];
+    // Format build patterns for code2prompt
+    const excludePatterns = BUILD_PATTERNS.map(pattern => `**/${pattern}/**`);
     
     // Join the build patterns with the correct format for code2prompt
-    const excludePatternsString = buildPatterns.join(',');
+    const excludePatternsString = excludePatterns.join(',');
     
     // Use code2prompt to get JSON output
     const outputFile = getCode2promptCachePath('get_project_structure.json');
@@ -215,7 +218,6 @@ export async function getProjectStructure(rootDir: string): Promise<ProjectStruc
   }
 }
 
-// PROJECT SIZE OPERATIONS
 export function getProjectSize(projectPath: string): { total: number; byLanguage: Record<string, number>; category: 'SMALL' | 'MEDIUM' | 'LARGE' } {
   try {
     // Check if cloc is installed
@@ -225,8 +227,13 @@ export function getProjectSize(projectPath: string): { total: number; byLanguage
       console.error('cloc is not installed. Please install it using npm install -g cloc');
       return { total: 0, byLanguage: {}, category: 'SMALL' };
     }
-
-    const result = execSync(`cloc ${projectPath} --json`, { encoding: 'utf-8' });
+    
+    // Use comma-separated list for exclude-dir parameter
+    const excludeDirs = BUILD_PATTERNS.join(',');
+    const clocCommand = `cloc ${projectPath} --exclude-dir=${excludeDirs} --json`;
+    
+    console.log(`Executing cloc command: ${clocCommand}`);
+    const result = execSync(clocCommand, { encoding: 'utf-8', maxBuffer: 10 * 1024 * 1024 });
     const clocResult = JSON.parse(result);
     
     // Remove summary entries
@@ -255,7 +262,6 @@ export function getProjectSize(projectPath: string): { total: number; byLanguage
   }
 }
 
-// REPORT OPERATIONS
 export async function saveFinalReport(report: any): Promise<string> {
   const outputPath = `./output/${currentRunTimestamp}`;
   await createDirectoryIfNotExists(outputPath);
