@@ -52,6 +52,13 @@ class ProjectReviewAgent {
   async run(): Promise<string> {
     console.log(`Starting review of project at: ${this.projectPath}`);
     
+    // Check if the directory is empty before proceeding
+    const fs = require('fs');
+    const dirContents = fs.readdirSync(this.projectPath);
+    if (dirContents.length === 0) {
+      throw new Error('Project directory is empty. Nothing to review.');
+    }
+    
     // Step 1: Get the project structure
     await this.getProjectStructure();
     
